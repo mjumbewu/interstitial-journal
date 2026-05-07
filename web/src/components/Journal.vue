@@ -12,6 +12,10 @@ const formContainer = ref(null);
 const isFormFixed = ref(true);
 const formHeight = ref(160);
 const showJumpToBottom = ref(false);
+const wasAtBottomOnFocus = ref(false);
+
+// If the scroll position is within this many pixels of the bottom, we consider it "at the bottom".
+const atBottomThreshold = 50;
 
 let unsubscribe = null;
 let initialScrollDone = false;
@@ -103,6 +107,17 @@ function jumpToBottom() {
   scrollToBottom(true);
 }
 
+function handleFormFocus() {
+  const el = scrollContainer.value;
+  if (!el) return;
+  const isAtBottom = el.scrollHeight - el.scrollTop - el.clientHeight < atBottomThreshold;
+
+  // If the user was at the bottom when they focused the form (before the keyboard
+  // might have shifted the layout), we should scroll to the bottom after they
+  // add a new entry.
+  wasAtBottomOnFocus.value = isAtBottom;
+}
+
 async function handleScroll() {
   checkScrollPosition();
   const el = scrollContainer.value;
@@ -118,9 +133,19 @@ async function handleScroll() {
 }
 
 async function handleNewEntry(text) {
+  const el = scrollContainer.value;
+  const isCurrentlyAtBottom = el ? (el.scrollHeight - el.scrollTop - el.clientHeight < atBottomThreshold) : false;
+
+  // If the user was at the bottom when they focused the form (before the keyboard
+  // might have shifted the layout), or if they are currently at the bottom, we should scroll.
+  const shouldScroll = wasAtBottomOnFocus.value || isCurrentlyAtBottom;
+
   await addEntry(text);
   await nextTick();
-  scrollToBottom(true);
+
+  if (shouldScroll) {
+    scrollToBottom(true);
+  }
 }
 
 async function handleSignOut() {
@@ -167,7 +192,7 @@ async function handleSignOut() {
         ref="formContainer"
         :class="{ 'is-fixed': isFormFixed }"
       >
-        <EntryForm @submit="handleNewEntry" />
+        <EntryForm @submit="handleNewEntry" @focus="handleFormFocus" />
       </div>
     </div>
 

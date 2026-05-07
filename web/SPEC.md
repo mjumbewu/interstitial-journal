@@ -21,6 +21,11 @@ This is a simple web application that allows users to write journal entries and 
 - The dates should be sticky at the top of the entry list.
 - The entry form should be fixed to the bottom of the screen, as long as the height of the screen is more than, say, about 3x the height of the entry form. Otherwise, it should be scrollable.
 - When the user isn't at the bottom of the list (i.e. at the most recent entry), there should be a way to jump to the bottom of the list. This could be a button that appears when the user scrolls up. When the user scrolls all the way to the bottom of the list, the button should disappear.
+- When the user is at the bottom of the list, the interface should stay scrolled to the bottom of the list after they add a new entry. I think this would entail:
+  - Checking whether the user is at the bottom of the list when they focus on the new entry box (because on mobile, focusing the new entry box will open the on-screen keyboard, which may shift the layout).
+  - Noting that the user was at the bottom of the list (and saving that notion to state).
+  - After adding a new entry, if the user was at the bottom of the list, scroll to the bottom of the list again.
+  - If the user was not at the bottom of the list, do not scroll.
 
 ## Authentication
 

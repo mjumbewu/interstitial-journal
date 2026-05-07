@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 
-const emit = defineEmits(['submit']);
+const emit = defineEmits(['submit', 'focus']);
 
 const text = ref('');
 const submitting = ref(false);
@@ -34,6 +34,7 @@ function handleKeydown(e) {
       placeholder="What're you up to? What's next?"
       rows="3"
       @keydown="handleKeydown"
+      @focus="emit('focus')"
       :disabled="submitting"
     ></textarea>
     <div class="entry-form-footer">
