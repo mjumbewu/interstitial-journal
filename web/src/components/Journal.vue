@@ -160,7 +160,7 @@ async function handleSignOut() {
 .journal-scroll {
   flex: 1;
   overflow-y: auto;
-  padding: 8px 0;
+  padding: 0 0 8px 0;
 }
 
 .journal-entries {
@@ -201,7 +201,7 @@ async function handleSignOut() {
   font-size: 0.95rem;
   font-weight: 600;
   letter-spacing: -0.2px;
-  margin: 1.25rem 0 0.25rem;
+  margin: 0 0 0.25rem;
   color: var(--text-h);
   position: sticky;
   top: 0;
