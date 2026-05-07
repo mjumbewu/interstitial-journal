@@ -29,3 +29,10 @@ This is a simple web application that allows users to write journal entries and 
 ## Authorization
 
 - Users should only be able to view and edit their own journal entries.
+
+## Future feature ideas
+
+- The data that this captures should stay limited to text. However, it would be nice to pull in other data from things like photos, completed tasks, exercise activity, screen time spent in certain apps, music listened to, web sites visited, etc. to be able to see the interstitial entries in the context of what they come between.
+  - The integration programming interface for additional data could consist of:
+    - A function that can be called for any time range that returns a JSON array of data records for that time range.
+    - A component that knows how to display that JSON data in a way that fits in with the journal entries that it is displayed next to.
