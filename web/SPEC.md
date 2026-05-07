@@ -16,6 +16,9 @@ This is a simple web application that allows users to write journal entries and 
 - Journal entries should be displayed in chronological order from the top down.
 - The latest journal entry should be visible after logging in.
 - Only the 100 most recent journal entries should be loaded at first, and older entries should be loaded on demand as the user scrolls up.
+- The entries on a given day should be grouped. The time should be displayed with each entry, but only the time, not the date (note that the `time` element's `datetime` attribute should include the full date and time).
+- Days with no entries should just be skipped.
+- The dates should be sticky at the top of the entry list.
 
 ## Authentication
 

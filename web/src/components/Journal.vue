@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, onUnmounted, ref, nextTick, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref, nextTick, watch } from 'vue';
 import { currentUser, signOut } from '../auth.js';
 import { useJournal } from '../journal-store.js';
 import JournalEntry from './JournalEntry.vue';
@@ -10,6 +10,34 @@ const { entries, loading, hasMore, subscribe, addEntry, loadOlderEntries } = use
 const scrollContainer = ref(null);
 let unsubscribe = null;
 let initialScrollDone = false;
+
+// Group entries by date (e.g. "Wed, May 6, 2026").
+const groupedEntries = computed(() => {
+  const groups = [];
+  let currentDateStr = null;
+  let currentGroup = null;
+
+  for (const entry of entries.value) {
+    const ts = entry.createdAt;
+    if (!ts) continue;
+    const date = ts.toDate ? ts.toDate() : new Date(ts);
+    const dateStr = date.toLocaleDateString(undefined, {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+
+    if (dateStr !== currentDateStr) {
+      currentDateStr = dateStr;
+      currentGroup = { date: dateStr, entries: [] };
+      groups.push(currentGroup);
+    }
+    currentGroup.entries.push(entry);
+  }
+
+  return groups;
+});
 
 onMounted(() => {
   if (currentUser.value) {
@@ -81,11 +109,14 @@ async function handleSignOut() {
       <div v-if="loading" class="journal-loading">Loading…</div>
 
       <div class="journal-entries">
-        <JournalEntry
-          v-for="entry in entries"
-          :key="entry.id"
-          :entry="entry"
-        />
+        <section v-for="group in groupedEntries" :key="group.date" class="day-group">
+          <h2 class="day-heading">{{ group.date }}</h2>
+          <JournalEntry
+            v-for="entry in group.entries"
+            :key="entry.id"
+            :entry="entry"
+          />
+        </section>
       </div>
 
       <div v-if="!loading && entries.length === 0" class="journal-empty">
@@ -113,7 +144,7 @@ async function handleSignOut() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 0;
+  padding: 1rem 0;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
@@ -160,5 +191,26 @@ async function handleSignOut() {
 .journal-form-container {
   flex-shrink: 0;
   padding-bottom: 24px;
+}
+
+.day-group {
+  margin-bottom: 0.5rem;
+}
+
+.day-heading {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  margin: 1.25rem 0 0.25rem;
+  color: var(--text-h);
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  padding: 0.5rem 0 0.25rem;
+  z-index: 1;
+}
+
+.day-group:first-child .day-heading {
+  margin-top: 8px;
 }
 </style>

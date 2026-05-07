@@ -20,42 +20,56 @@ const renderedHtml = computed(() => {
   return DOMPurify.sanitize(marked.parse(props.entry.text || ''));
 });
 
-const formattedTime = computed(() => {
+const entryDate = computed(() => {
   const ts = props.entry.createdAt;
-  if (!ts) return '';
-  // Firestore Timestamps have a toDate() method.
-  const date = ts.toDate ? ts.toDate() : new Date(ts);
-  return date.toLocaleString(undefined, {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
+  if (!ts) return null;
+  return ts.toDate ? ts.toDate() : new Date(ts);
+});
+
+const formattedTime = computed(() => {
+  if (!entryDate.value) return '';
+  return entryDate.value.toLocaleTimeString(undefined, {
     hour: 'numeric',
     minute: '2-digit',
   });
+});
+
+const isoDatetime = computed(() => {
+  if (!entryDate.value) return '';
+  return entryDate.value.toISOString();
 });
 </script>
 
 <template>
   <article class="journal-entry">
-    <div class="entry-body" v-html="renderedHtml"></div>
-    <time class="entry-time" :datetime="entry.createdAt?.toDate?.()?.toISOString?.()">
+    <time class="entry-time" :datetime="isoDatetime">
       {{ formattedTime }}
     </time>
+    <div class="entry-body" v-html="renderedHtml"></div>
   </article>
 </template>
 
 <style scoped>
 .journal-entry {
-  padding: 16px 0;
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.375rem 0;
 }
 
-.journal-entry + .journal-entry {
-  border-top: 1px solid var(--border);
+.entry-time {
+  flex-shrink: 0;
+  width: 3.75rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: right;
 }
 
 .entry-body {
+  flex: 1;
   color: var(--text-h);
   line-height: 1.6;
+  min-width: 0;
 }
 
 /* Scope markdown output styles */
@@ -86,12 +100,5 @@ const formattedTime = computed(() => {
 }
 .entry-body :deep(a) {
   color: var(--accent);
-}
-
-.entry-time {
-  display: block;
-  margin-top: 8px;
-  font-size: 13px;
-  color: var(--text-muted);
 }
 </style>
