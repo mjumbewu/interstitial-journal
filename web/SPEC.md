@@ -19,6 +19,8 @@ This is a simple web application that allows users to write journal entries and 
 - The entries on a given day should be grouped. The time should be displayed with each entry, but only the time, not the date (note that the `time` element's `datetime` attribute should include the full date and time).
 - Days with no entries should just be skipped.
 - The dates should be sticky at the top of the entry list.
+- The entry form should be fixed to the bottom of the screen, as long as the height of the screen is more than, say, about 3x the height of the entry form. Otherwise, it should be scrollable.
+- When the user isn't at the bottom of the list (i.e. at the most recent entry), there should be a way to jump to the bottom of the list. This could be a button that appears when the user scrolls up. When the user scrolls all the way to the bottom of the list, the button should disappear.
 
 ## Authentication
 

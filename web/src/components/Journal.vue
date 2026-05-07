@@ -8,8 +8,14 @@ import EntryForm from './EntryForm.vue';
 const { entries, loading, hasMore, subscribe, addEntry, loadOlderEntries } = useJournal();
 
 const scrollContainer = ref(null);
+const formContainer = ref(null);
+const isFormFixed = ref(true);
+const formHeight = ref(160);
+const showJumpToBottom = ref(false);
+
 let unsubscribe = null;
 let initialScrollDone = false;
+let ro = null;
 
 // Group entries by date (e.g. "Wed, May 6, 2026").
 const groupedEntries = computed(() => {
@@ -39,14 +45,34 @@ const groupedEntries = computed(() => {
   return groups;
 });
 
+function checkScrollPosition() {
+  const el = scrollContainer.value;
+  if (!el) return;
+  // If we are within 50px of the bottom, we consider it "at the bottom"
+  const isAtBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 50;
+  showJumpToBottom.value = !isAtBottom;
+}
+
 onMounted(() => {
   if (currentUser.value) {
     unsubscribe = subscribe(currentUser.value.uid);
   }
+
+  ro = new ResizeObserver(() => {
+    if (formContainer.value) {
+      const h = formContainer.value.offsetHeight;
+      formHeight.value = h;
+      isFormFixed.value = window.innerHeight > 3 * h;
+    }
+    checkScrollPosition();
+  });
+  if (formContainer.value) ro.observe(formContainer.value);
+  ro.observe(document.body);
 });
 
 onUnmounted(() => {
   if (unsubscribe) unsubscribe();
+  if (ro) ro.disconnect();
 });
 
 // Auto-scroll to bottom when entries first load.
@@ -55,17 +81,30 @@ watch(entries, async () => {
     initialScrollDone = true;
     await nextTick();
     scrollToBottom();
+  } else {
+    await nextTick();
+    checkScrollPosition();
   }
 });
 
-function scrollToBottom() {
+function scrollToBottom(smooth = false) {
   const el = scrollContainer.value;
   if (el) {
-    el.scrollTop = el.scrollHeight;
+    if (smooth) {
+      el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+    } else {
+      el.scrollTop = el.scrollHeight;
+    }
+    showJumpToBottom.value = false;
   }
 }
 
+function jumpToBottom() {
+  scrollToBottom(true);
+}
+
 async function handleScroll() {
+  checkScrollPosition();
   const el = scrollContainer.value;
   if (!el || loading.value || !hasMore.value) return;
   // When user scrolls near the top, load older entries.
@@ -81,7 +120,7 @@ async function handleScroll() {
 async function handleNewEntry(text) {
   await addEntry(text);
   await nextTick();
-  scrollToBottom();
+  scrollToBottom(true);
 }
 
 async function handleSignOut() {
@@ -122,11 +161,25 @@ async function handleSignOut() {
       <div v-if="!loading && entries.length === 0" class="journal-empty">
         <p>No entries yet. Write your first one below.</p>
       </div>
+
+      <div
+        class="journal-form-container"
+        ref="formContainer"
+        :class="{ 'is-fixed': isFormFixed }"
+      >
+        <EntryForm @submit="handleNewEntry" />
+      </div>
     </div>
 
-    <div class="journal-form-container">
-      <EntryForm @submit="handleNewEntry" />
-    </div>
+    <!-- Jump to bottom button -->
+    <button
+      class="btn btn-primary jump-to-bottom"
+      v-show="showJumpToBottom"
+      :style="{ bottom: isFormFixed ? `${formHeight + 24}px` : '24px' }"
+      @click="jumpToBottom"
+    >
+      ↓
+    </button>
   </div>
 </template>
 
@@ -138,6 +191,7 @@ async function handleSignOut() {
   max-width: 640px;
   margin: 0 auto;
   padding: 0 24px;
+  position: relative;
 }
 
 .journal-header {
@@ -160,11 +214,13 @@ async function handleSignOut() {
 .journal-scroll {
   flex: 1;
   overflow-y: auto;
-  padding: 0 0 8px 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .journal-entries {
-  min-height: 0;
+  flex-shrink: 0;
 }
 
 .journal-loading {
@@ -178,7 +234,7 @@ async function handleSignOut() {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
+  flex: 1;
   color: var(--text-muted);
   font-size: 15px;
 }
@@ -191,6 +247,24 @@ async function handleSignOut() {
 .journal-form-container {
   flex-shrink: 0;
   padding-bottom: 24px;
+  background: var(--bg);
+  margin-top: auto;
+}
+
+.journal-form-container.is-fixed {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+}
+
+.jump-to-bottom {
+  position: absolute;
+  right: 24px;
+  z-index: 20;
+  border-radius: 9999px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease-in-out;
+  padding: 8px 16px;
 }
 
 .day-group {
