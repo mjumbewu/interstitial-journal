@@ -28,8 +28,7 @@ const groupedEntries = computed(() => {
   let currentGroup = null;
 
   for (const entry of entries.value) {
-    const ts = entry.createdAt;
-    if (!ts) continue;
+    const ts = entry.createdAt || new Date();
     const date = ts.toDate ? ts.toDate() : new Date(ts);
     const dateStr = date.toLocaleDateString(undefined, {
       weekday: 'short',

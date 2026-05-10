@@ -21,8 +21,7 @@ const renderedHtml = computed(() => {
 });
 
 const entryDate = computed(() => {
-  const ts = props.entry.createdAt;
-  if (!ts) return null;
+  const ts = props.entry.createdAt || new Date();
   return ts.toDate ? ts.toDate() : new Date(ts);
 });
 
