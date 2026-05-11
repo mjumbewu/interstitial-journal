@@ -4,12 +4,11 @@ import {
   orderBy,
   limit,
   addDoc,
+  setDoc,
+  doc,
   getDocs,
   onSnapshot,
   startAfter,
-  endBefore,
-  limitToLast,
-  serverTimestamp,
   Timestamp,
 } from 'firebase/firestore';
 import { db } from './firebase_config.js';
@@ -81,8 +80,13 @@ export async function loadOlderEntries(userId, beforeTimestamp, count) {
  * @param {string} text — markdown text
  */
 export async function addEntry(userId, text) {
-  return addDoc(entriesRef(userId), {
+  const now = new Date();
+  const dateStr = now.toISOString().replace(/[:.]/g, '-');
+  const randomStr = crypto.randomUUID().split('-')[0];
+  const docId = `${dateStr}-${randomStr}`;
+
+  return setDoc(doc(db, 'users', userId, 'entries', docId), {
     text,
-    createdAt: serverTimestamp(),
+    createdAt: Timestamp.fromDate(now),
   });
 }
