@@ -31,7 +31,7 @@ function handleKeydown(e) {
     <textarea
       id="entry-text"
       v-model="text"
-      placeholder="What're you up to? What's next?"
+      placeholder="What're you up to? Is that what you want to be doing? What's next?"
       rows="3"
       @keydown="handleKeydown"
       @focus="emit('focus')"
