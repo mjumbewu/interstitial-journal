@@ -10,6 +10,8 @@ const props = defineProps({
   },
 });
 
+defineEmits(['retry', 'dismiss']);
+
 // Configure marked for inline-friendly output.
 marked.setOptions({
   breaks: true,
@@ -40,11 +42,19 @@ const isoDatetime = computed(() => {
 </script>
 
 <template>
-  <article class="journal-entry">
+  <article class="journal-entry" :class="{ 'is-pending': entry.hasPendingWrites, 'is-failed': entry.isFailed }">
     <time class="entry-time" :datetime="isoDatetime">
       {{ formattedTime }}
     </time>
-    <div class="entry-body" v-html="renderedHtml"></div>
+    <div class="entry-content">
+      <div class="entry-body" v-html="renderedHtml"></div>
+      <div v-if="entry.hasPendingWrites" class="entry-status pending-text">saving...</div>
+      <div v-if="entry.isFailed" class="entry-status failed-text">failed to save</div>
+      <div v-if="entry.isFailed" class="entry-actions">
+        <button @click="$emit('retry', entry.id)" class="btn btn-sm">Retry</button>
+        <button @click="$emit('dismiss', entry.id)" class="btn btn-sm btn-ghost">Dismiss</button>
+      </div>
+    </div>
   </article>
 </template>
 
@@ -64,11 +74,43 @@ const isoDatetime = computed(() => {
   text-align: right;
 }
 
-.entry-body {
+.entry-content {
   flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.entry-body {
   color: var(--text-h);
   line-height: 1.6;
-  min-width: 0;
+}
+
+.is-pending .entry-body {
+  opacity: 0.7;
+}
+
+.is-failed .entry-body {
+  color: var(--danger, #dc3545);
+}
+
+.entry-status {
+  font-size: 0.75rem;
+}
+.pending-text {
+  color: var(--text-muted);
+  font-style: italic;
+}
+.failed-text {
+  color: var(--danger, #dc3545);
+  font-weight: bold;
+}
+
+.entry-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
 }
 
 /* Scope markdown output styles */

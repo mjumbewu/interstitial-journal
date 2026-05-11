@@ -37,10 +37,10 @@ export function subscribeToEntries(userId, count, callback) {
     limit(count),
   );
 
-  return onSnapshot(q, (snapshot) => {
+  return onSnapshot(q, { includeMetadataChanges: true }, (snapshot) => {
     const entries = [];
     snapshot.forEach((doc) => {
-      entries.push({ id: doc.id, ...doc.data() });
+      entries.push({ id: doc.id, hasPendingWrites: doc.metadata.hasPendingWrites, ...doc.data() });
     });
     // Reverse so the list is chronological (oldest first, newest last).
     entries.reverse();

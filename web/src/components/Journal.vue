@@ -5,7 +5,17 @@ import { useJournal } from '../journal-store.js';
 import JournalEntry from './JournalEntry.vue';
 import EntryForm from './EntryForm.vue';
 
-const { entries, loading, hasMore, subscribe, addEntry, loadOlderEntries } = useJournal();
+const {
+  entries,
+  failedEntries,
+  loading,
+  hasMore,
+  subscribe,
+  addEntry,
+  retryEntry,
+  dismissFailedEntry,
+  loadOlderEntries,
+} = useJournal();
 
 const scrollContainer = ref(null);
 const formContainer = ref(null);
@@ -27,7 +37,13 @@ const groupedEntries = computed(() => {
   let currentDateStr = null;
   let currentGroup = null;
 
-  for (const entry of entries.value) {
+  const allEntries = [...entries.value, ...failedEntries.value].sort((a, b) => {
+    const tsA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt || Date.now());
+    const tsB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt || Date.now());
+    return tsA - tsB;
+  });
+
+  for (const entry of allEntries) {
     const ts = entry.createdAt || new Date();
     const date = ts.toDate ? ts.toDate() : new Date(ts);
     const dateStr = date.toLocaleDateString(undefined, {
@@ -178,11 +194,13 @@ async function handleSignOut() {
             v-for="entry in group.entries"
             :key="entry.id"
             :entry="entry"
+            @retry="retryEntry"
+            @dismiss="dismissFailedEntry"
           />
         </section>
       </div>
 
-      <div v-if="!loading && entries.length === 0" class="journal-empty">
+      <div v-if="!loading && entries.length === 0 && failedEntries.length === 0" class="journal-empty">
         <p>No entries yet. Write your first one below.</p>
       </div>
 

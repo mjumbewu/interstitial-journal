@@ -15,6 +15,7 @@ const PAGE_SIZE = 100;
  */
 export function useJournal() {
   const entries = ref([]);
+  const failedEntries = ref([]);
   const loading = ref(false);
   const hasMore = ref(true);
   let unsubscribe = null;
@@ -78,15 +79,43 @@ export function useJournal() {
    */
   async function addEntry(text) {
     if (!currentUserId) return;
-    await addEntryToDb(currentUserId, text);
+    try {
+      await addEntryToDb(currentUserId, text);
+    } catch (e) {
+      console.error('Failed to add entry', e);
+      failedEntries.value.push({
+        id: 'failed-' + Date.now() + Math.random(),
+        text,
+        createdAt: new Date(),
+        isFailed: true,
+      });
+    }
+  }
+
+  async function retryEntry(id) {
+    const index = failedEntries.value.findIndex((e) => e.id === id);
+    if (index === -1) return;
+    const entry = failedEntries.value[index];
+    failedEntries.value.splice(index, 1);
+    await addEntry(entry.text);
+  }
+
+  function dismissFailedEntry(id) {
+    const index = failedEntries.value.findIndex((e) => e.id === id);
+    if (index !== -1) {
+      failedEntries.value.splice(index, 1);
+    }
   }
 
   return {
     entries,
+    failedEntries,
     loading,
     hasMore,
     subscribe,
     addEntry,
+    retryEntry,
+    dismissFailedEntry,
     loadOlderEntries,
   };
 }
