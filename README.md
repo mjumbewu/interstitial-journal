@@ -1,0 +1,1 @@
+This project uses an OpenSpec agent-driven development flow. Set up OpenSpec for the agent you'd like to use by following the instructions in the [OpenSpec documentation](https://github.com/Fission-AI/OpenSpec/#quick-start).

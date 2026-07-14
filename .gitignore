@@ -1,1 +1,9 @@
+# Agent skills & tools
+.agent/
+.claude/
+
+# Installed dependencies
 node_modules/
+
+# Sensitive files
+google-services.json
