@@ -1,4 +1,7 @@
 schema: spec-driven
+context:
+  Tech stack: Firebase backend for auth and database, Vue 3 with vanilla CSS and a vite build system for web, Kotlin for Android
+  Purpose: Simple, minimal interstitial journaling app to help the user recover focus and direction when between tasks
 
 # Project context (optional)
 # This is shown to AI when creating artifacts.
